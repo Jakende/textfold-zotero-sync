@@ -7,11 +7,21 @@ var TextFoldSyncCore = (() => {
     if (value && typeof value === 'object') return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + stable(value[k])).join(',') + '}';
     return JSON.stringify(value ?? null);
   }
+  const palette = new Set(['#ffd400', '#ff6666', '#5fb236', '#2ea8e5', '#a28ae5', '#e56eee', '#f19837', '#aaaaaa']);
+  const colorOf = note => palette.has(note.color) ? note.color : null;
+  const codeTags = note => Array.isArray(note.codes)
+    ? [...new Set(note.codes.filter(code => typeof code === 'string' && code.trim() && code.trim().length <= 240)
+      .map(code => 'code/' + code.trim()))].sort()
+    : [];
   function sourceSignature(note, isAnnotation = false) {
     const source = {kind: note.kind, text: note.text || '', anchor: note.anchor || {},
       thread: (note.thread || (note.ask ? [note.ask] : [])).map(t => ({q:t.q||'',a:t.a||'',error:t.error||'',cites:t.cites||[]}))};
     // Refresh existing PDF comments after the format change without rewriting child notes.
     if (isAnnotation) source.annotationFormat = 2;
+    const codes = codeTags(note);
+    const color = colorOf(note);
+    if (codes.length) source.codes = codes;
+    if (color && isAnnotation) source.color = color;
     return stable(source);
   }
   const uri = (paper, note) => 'textfold://open?paper=' + encodeURIComponent(paper) + '&n=' + encodeURIComponent(note);
@@ -78,6 +88,6 @@ var TextFoldSyncCore = (() => {
     if (entry && source === entry.source) return 'unchanged';
     return item ? 'update' : 'create';
   }
-  return {normalized, stable, sourceSignature, uri, annotationComment, noteHTML, pageIndex, matches, selection, decision};
+  return {normalized, stable, sourceSignature, uri, colorOf, codeTags, annotationComment, noteHTML, pageIndex, matches, selection, decision};
 })();
 if (typeof module !== 'undefined') module.exports = TextFoldSyncCore;

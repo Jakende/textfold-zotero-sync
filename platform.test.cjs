@@ -133,10 +133,22 @@ for (const [platform, {paths, root}] of Object.entries(platforms)) {
     assert.equal(saved.position.pageIndex, 7);
     assert.equal((await transfer()).result, 'unchanged');
 
+    note.color = '#ff6666';
+    note.codes = ['Grenze', 'Datenlücke', 'Grenze'];
+    assert.equal((await transfer()).key, created.key);
+    assert.equal(saved.color, '#ff6666');
+    assert.deepEqual(Array.from(saved.tags, tag => tag.name), ['Methode', 'code/Datenlücke', 'code/Grenze']);
+    note.color = '#5fb236';
+    note.codes = ['Grenze'];
+    assert.equal((await transfer()).key, created.key);
+    assert.equal(saved.color, '#5fb236');
+    assert.deepEqual(Array.from(saved.tags, tag => tag.name), ['Methode', 'code/Grenze']);
+    assert.equal((await transfer()).result, 'unchanged');
+
     item.annotationComment = 'In Zotero bearbeitet';
     assert.equal((await transfer()).result, 'conflict');
     assert.equal(item.annotationComment, 'In Zotero bearbeitet');
-    assert.equal(writes, 2);
+    assert.equal(writes, 4);
   });
 }
 
