@@ -1,0 +1,14 @@
+TextFold to Zotero
+Maintainer: Jakende (https://github.com/Jakende)
+Distribution license: GNU Affero General Public License, version 3.
+
+The PDF location code in core.js and sync.js draws on character indexing,
+selection geometry and reader integration patterns from LLM-for-Zotero,
+maintained by Yile Wang and contributors. Its source was consulted in version
+3.9.20, and the implementation here was adapted for TextFold note transfers.
+
+Upstream project: https://github.com/yilewang/llm-for-zotero
+Upstream resolver: https://github.com/yilewang/llm-for-zotero/blob/main/src/services/pdf/pdfAnnotationResolver.ts
+Upstream license: https://github.com/yilewang/llm-for-zotero/blob/main/LICENSE
+
+TextFold, Zotero, and TextFold Bridge for Obsidian are separate projects.
