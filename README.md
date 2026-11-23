@@ -2,7 +2,7 @@
 
 A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
-[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.1) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
+[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.2) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
 
@@ -13,13 +13,13 @@ This is an independent community add-on maintained by [Jakende](https://github.c
 | Zotero Desktop | 10.0.x. Verified with Zotero 10.0.9. |
 | TextFold | Verified with the local library format from TextFold 0.10.57. |
 | macOS | Transfer and Zotero upload verified on Apple silicon. The packaged beta also passed a startup test in a separate Zotero profile. |
-| Windows | Standard and custom paths covered by automated tests. A full desktop test is pending. |
+| Windows | Standard and custom paths covered by automated tests. Annotation creation and updates verified in Zotero Desktop 10.0.8 with a fixture. A full test with both desktop apps on Windows is pending. |
 
 Both platforms use the same XPI. This beta uses German labels in the add-on menu. The steps below give the exact menu labels.
 
 ## Install and try a transfer
 
-1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.1).
+1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.2).
 2. In Zotero, open **Tools → Plugins** (also called **Add-ons** in some versions or translations) and drag the XPI onto the window. See the [Zotero installation guide](https://www.zotero.org/support/plugins).
 3. In TextFold, open a source using its Zotero library picker. To try PDF highlighting, pick an item with a local PDF and add a comment to a passage in the original text.
 4. In Zotero, open **Tools → TextFold → Zotero → Jetzt übertragen**. Check the PDF reader for the highlight or open the child note under the source item.
@@ -62,6 +62,6 @@ node --test core.test.cjs platform.test.cjs
 python build.py
 ```
 
-The XPI is written to `dist/`. GitHub Actions runs the tests and build on macOS and Windows. These checks cover the platform path logic and packaging. The Windows desktop workflow is tested separately from CI.
+The XPI is written to `dist/`. GitHub Actions runs the tests and build on macOS and Windows. These checks cover the platform path logic and packaging. The native Windows check uses an isolated Zotero profile and a fixture.
 
 Licensed under the [GNU Affero General Public License, version 3](LICENSE).
