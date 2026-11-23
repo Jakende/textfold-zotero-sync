@@ -1,8 +1,4 @@
-function install() {}
-function uninstall() {}
-function shutdown() {}
-
-async function startup() {
+async function checkDesktop() {
   const timers = ChromeUtils.importESModule('resource://gre/modules/Timer.sys.mjs');
   const directory = PathUtils.parent(PathUtils.profileDir);
   const resultPath = PathUtils.join(directory, 'result.json');

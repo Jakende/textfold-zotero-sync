@@ -1,7 +1,6 @@
 """Set up a disposable Zotero profile for the annotation integration test."""
 import argparse
 from pathlib import Path
-import shutil
 import zipfile
 
 root = Path(__file__).resolve().parent
@@ -20,18 +19,15 @@ extensions.mkdir(parents=True)
     'user_pref("app.update.auto", false);\n',
     encoding="utf-8",
 )
-shutil.copyfile(
-    root / "dist" / "TextFold-Zotero-Sync-1.1.0-beta.2.xpi",
-    extensions / "textfold-zotero-sync@local.jakende.xpi",
-)
-with zipfile.ZipFile(extensions / "textfold-desktop-check@example.invalid.xpi", "w") as archive:
-    archive.writestr(
-        "manifest.json",
-        '{"manifest_version":2,"name":"TextFold desktop check","version":"1.0",'
-        '"applications":{"zotero":{"id":"textfold-desktop-check@example.invalid",'
-        '"strict_min_version":"10.0","strict_max_version":"10.0.*"}}}',
-    )
-    archive.write(root / "desktop-check.js", "bootstrap.js")
+with zipfile.ZipFile(root / "dist" / "TextFold-Zotero-Sync-1.1.0-beta.2.xpi") as candidate:
+    with zipfile.ZipFile(extensions / "textfold-zotero-sync@local.jakende.xpi", "w") as archive:
+        for entry in candidate.infolist():
+            payload = candidate.read(entry)
+            if entry.filename == "bootstrap.js":
+                payload += b"\n" + (root / "desktop-check.js").read_bytes()
+                payload += b"\nconst startAddon = startup;\n"
+                payload += b"startup = async data => { await startAddon(data); void checkDesktop(); };\n"
+            archive.writestr(entry, payload)
 
 stream = b"BT /F1 12 Tf 72 720 Td (A unique scientific passage for the desktop annotation test.) Tj ET\n"
 objects = [

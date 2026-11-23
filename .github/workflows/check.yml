@@ -33,11 +33,17 @@ jobs:
           python desktop-check.py $fixture
           if ($LASTEXITCODE) { throw 'Could not prepare the test Zotero profile' }
           $env:TEXTFOLD_DATA = Join-Path $fixture 'textfold'
-          $process = Start-Process $binary -ArgumentList "-no-remote -profile `"$fixture\profile`" -datadir `"$fixture\data`"" -PassThru
+          $log = Join-Path $fixture 'zotero.log'
+          $env:MOZ_HEADLESS = '1'
+          $process = Start-Process $binary -WorkingDirectory (Split-Path $binary) -ArgumentList "-no-remote -profile `"$fixture\profile`" -datadir `"$fixture\data`"" -PassThru -RedirectStandardError $log
           try {
             $result = Join-Path $fixture 'result.json'
-            for ($i = 0; $i -lt 90 -and !(Test-Path $result) -and !$process.HasExited; $i++) { Start-Sleep -Seconds 2 }
-            if (!(Test-Path $result)) { throw 'Zotero did not return a desktop test result' }
+            for ($i = 0; $i -lt 70 -and !(Test-Path $result); $i++) { Start-Sleep -Seconds 2 }
+            if (!(Test-Path $result)) {
+              Get-ChildItem (Join-Path $fixture 'profile') | Select-Object -ExpandProperty Name
+              if (Test-Path $log) { Get-Content $log -Tail 40 }
+              throw "Zotero did not return a test result (launcher exit code: $($process.ExitCode))"
+            }
             $json = Get-Content -Raw $result
             Write-Output $json
             if (!(ConvertFrom-Json $json).passed) { throw 'Zotero desktop test failed' }
