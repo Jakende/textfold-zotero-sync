@@ -168,7 +168,8 @@ var TextFoldZoteroSync = new class {
     return !!entry&&entry.key===item.key&&entry.libraryID===item.libraryID&&entry.kind===(item.isAnnotation()?'annotation':'note');
   }
   async transfer(paper,meta,note,parent,att,options={}) {
-    const uri=this.core.uri(paper,note.id),source=this.hash(this.core.sourceSignature(note)),entry=this.state.entries[uri];
+    const uri=this.core.uri(paper,note.id),entry=this.state.entries[uri];
+    const source=this.hash(this.core.sourceSignature(note, entry?.kind==='annotation'));
     if(entry&&(entry.libraryID!==parent.libraryID||entry.parent!==parent.key))return {result:'conflict',reason:'Die Zotero-Quellenzuordnung hat sich geändert; keine automatische Verschiebung oder Neuanlage.',uri};
     const key=entry?.key||this.key(uri+'|'+parent.libraryKey);
     let item=Zotero.Items.getByLibraryAndKey(parent.libraryID,key)||null;
@@ -193,16 +194,19 @@ var TextFoldZoteroSync = new class {
     }
     if(item&&this.hash(this.itemState(item))!==current)return {result:'conflict',reason:'Ziel wurde während der Übertragung bearbeitet',uri};
     if(item?.isAnnotation()||geometry) {
-      const json=item?Zotero.Annotations.toJSONSync(item):{...geometry,key,type:'highlight',color:'#a28ae5',tags:[{name:'TextFold'}]};
+      const json=item?Zotero.Annotations.toJSONSync(item):{...geometry,key,type:'highlight',color:'#a28ae5'};
       if(item&&geometry)for(const field of ['text','position','pageLabel','sortIndex'])json[field]=geometry[field];
-      json.key=key;json.comment=this.core.comment(paper,note,entry?.context||geometry?.context||'');
+      json.key=key;
+      json.comment=this.core.annotationComment(note,entry?.context||geometry?.context||'');
+      json.tags=(json.tags||[]).filter(tag=>tag.name!=='TextFold');
       item=await Zotero.Annotations.saveFromJSON(item?.parentItem||att.item,json);
     }else {
       if(!item){item=new Zotero.Item('note');item.libraryID=parent.libraryID;item.key=key;await item.loadPrimaryData();item.parentID=parent.id;item.addTag('TextFold');}
       item.setNote(this.core.noteHTML(paper,note,entry?.reason||reason));await item.saveTx({skipSelect:true});
     }
     if(!old)options.journal?.recordCreatedItem(item);
-    this.state.entries[uri]={key:item.key,libraryID:item.libraryID,parent:parent.key,attachment:item.isAnnotation()?item.parentItem.key:null,kind:item.isAnnotation()?'annotation':'note',source,anchor,target:this.hash(this.itemState(item)),context:geometry?.context||entry?.context||'',reason:entry?.reason||reason,time:new Date().toISOString()};
+    const isAnnotation=item.isAnnotation();
+    this.state.entries[uri]={key:item.key,libraryID:item.libraryID,parent:parent.key,attachment:isAnnotation?item.parentItem.key:null,kind:isAnnotation?'annotation':'note',source:entry?source:this.hash(this.core.sourceSignature(note,isAnnotation)),anchor,target:this.hash(this.itemState(item)),context:geometry?.context||entry?.context||'',reason:entry?.reason||reason,time:new Date().toISOString()};
     await this.persist();
     return {result:old?'updated':'created',uri,key:item.key,id:item.id,kind:this.state.entries[uri].kind,pageIndex:item.isAnnotation()?JSON.parse(item.annotationPosition).pageIndex:null,reason};
   }

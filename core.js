@@ -7,13 +7,16 @@ var TextFoldSyncCore = (() => {
     if (value && typeof value === 'object') return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + stable(value[k])).join(',') + '}';
     return JSON.stringify(value ?? null);
   }
-  function sourceSignature(note) {
-    return stable({kind: note.kind, text: note.text || '', anchor: note.anchor || {},
-      thread: (note.thread || (note.ask ? [note.ask] : [])).map(t => ({q:t.q||'',a:t.a||'',error:t.error||'',cites:t.cites||[]}))});
+  function sourceSignature(note, isAnnotation = false) {
+    const source = {kind: note.kind, text: note.text || '', anchor: note.anchor || {},
+      thread: (note.thread || (note.ask ? [note.ask] : [])).map(t => ({q:t.q||'',a:t.a||'',error:t.error||'',cites:t.cites||[]}))};
+    // Refresh existing PDF comments after the format change without rewriting child notes.
+    if (isAnnotation) source.annotationFormat = 2;
+    return stable(source);
   }
   const uri = (paper, note) => 'textfold://open?paper=' + encodeURIComponent(paper) + '&n=' + encodeURIComponent(note);
-  function comment(paper, note, context = '') {
-    let lines = ['TextFold'];
+  function annotationComment(note, context = '') {
+    const lines = [];
     if (context) lines.push(context);
     if (note.text) lines.push(note.text);
     for (const t of note.thread || (note.ask ? [note.ask] : [])) {
@@ -21,7 +24,6 @@ var TextFoldSyncCore = (() => {
       if (t.a) lines.push('Antwort (KI): ' + t.a);
       else if (t.error) lines.push('Antwort fehlgeschlagen: ' + t.error);
     }
-    lines.push('Zurück zu TextFold: ' + uri(paper, note.id));
     return lines.join('\n\n');
   }
   const escape = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -30,7 +32,8 @@ var TextFoldSyncCore = (() => {
     let html = '<h2>TextFold: ' + (note.kind === 'ask' ? 'Frage und Antwort' : 'Notiz') + '</h2>';
     if (reason) html += '<p>' + escape(reason) + '</p>';
     if (q) html += '<blockquote>' + escape(q) + '</blockquote>';
-    const body = escape(comment(paper, note)).replace(/\[\[([\w.-]+)\]\]/g, (_, unit) => '<a href="textfold://open?paper=' + encodeURIComponent(paper) + '&amp;u=' + encodeURIComponent(unit) + '">' + unit + '</a>');
+    const lines = ['TextFold', annotationComment(note), 'Zurück zu TextFold: ' + uri(paper, note.id)].filter(Boolean);
+    const body = escape(lines.join('\n\n')).replace(/\[\[([\w.-]+)\]\]/g, (_, unit) => '<a href="textfold://open?paper=' + encodeURIComponent(paper) + '&amp;u=' + encodeURIComponent(unit) + '">' + unit + '</a>');
     html += '<p>' + body.replace(/\n/g, '<br/>') + '</p>';
     return html;
   }
@@ -75,6 +78,6 @@ var TextFoldSyncCore = (() => {
     if (entry && source === entry.source) return 'unchanged';
     return item ? 'update' : 'create';
   }
-  return {normalized, stable, sourceSignature, uri, comment, noteHTML, pageIndex, matches, selection, decision};
+  return {normalized, stable, sourceSignature, uri, annotationComment, noteHTML, pageIndex, matches, selection, decision};
 })();
 if (typeof module !== 'undefined') module.exports = TextFoldSyncCore;

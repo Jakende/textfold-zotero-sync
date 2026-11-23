@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const {createHash} = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -61,7 +62,7 @@ function createHost(platform, {env = {}, config, available = []} = {}) {
       : {FilePicker}},
   });
   vm.runInContext(bootstrap,context);
-  return {async start() {await context.startup({rootURI:''});return Zotero.TextFoldZoteroSync;}, files, directory, root, paths, requests, nativeFolder};
+  return {async start() {await context.startup({rootURI:''});return Zotero.TextFoldZoteroSync;}, files, directory, root, paths, requests, nativeFolder, zotero:Zotero};
 }
 
 for (const [platform, {paths, root}] of Object.entries(platforms)) {
@@ -77,6 +78,65 @@ for (const [platform, {paths, root}] of Object.entries(platforms)) {
     host.files.set(paths.join(root, 'server.json'), '{"url":"http://127.0.0.1:31917"}');
     await service.document('example');
     assert.deepEqual(host.requests, ['http://127.0.0.1:31917/api/doc/example?lang=en']);
+  });
+
+  test(platform + ' refreshes only its own unchanged PDF annotation without creating a duplicate', async () => {
+    const host = createHost(platform);
+    const service = await host.start();
+    const note = {id:'n-example', kind:'note', text:'Eigenes Memo'};
+    const uri = service.core.uri('paper', note.id);
+    const parent = {key:'PARENT', libraryID:1};
+    const attachment = {key:'PDF'};
+    const geometry = {text:'Original passage', position:{pageIndex:7, rects:[[0, 0, 10, 10]]}};
+    const hash = value => createHash('md5').update(value).digest('hex');
+    let saved;
+    let item;
+    let writes = 0;
+    const {zotero} = host;
+    zotero.Utilities = {Internal:{md5:hash}};
+    zotero.Items = {getByLibraryAndKey: () => item};
+    zotero.Annotations = {
+      toJSONSync: () => saved,
+      saveFromJSON: async (pdf, json) => {
+        assert.equal(pdf, attachment);
+        writes++;
+        saved = json;
+        item = {
+          key:json.key, libraryID:1, parentKey:pdf.key, parentItem:pdf, isAnnotation:() => true,
+          annotationPosition:JSON.stringify(json.position), annotationComment:json.comment,
+          annotationText:json.text, annotationColor:json.color, getTags:() => json.tags,
+          getRelations:() => ({}), toJSON:() => json,
+        };
+        return item;
+      },
+    };
+    service.quotations = async () => ['Original passage'];
+    service.locate = async () => geometry;
+    const transfer = () => service.transfer('paper', {}, note, parent, {item:attachment});
+    const created = await transfer();
+    assert.equal(created.result, 'created');
+    assert.equal(saved.comment, 'Eigenes Memo');
+    assert.equal(saved.tags.length, 0);
+    assert.equal((await transfer()).result, 'unchanged');
+
+    // Reproduce a previously imported annotation and its original saved fingerprints.
+    item.annotationComment = 'TextFold\n\nEigenes Memo\n\nZurück zu TextFold: ' + uri;
+    saved.tags = [{name:'TextFold'}, {name:'Methode'}];
+    const entry = service.state.entries[uri];
+    entry.source = hash(service.core.sourceSignature(note));
+    entry.target = hash(service.itemState(item));
+    const migrated = await transfer();
+    assert.equal(migrated.result, 'updated');
+    assert.equal(migrated.key, created.key);
+    assert.equal(saved.comment, 'Eigenes Memo');
+    assert.equal(saved.tags.map(tag => tag.name).join(), 'Methode');
+    assert.equal(saved.position.pageIndex, 7);
+    assert.equal((await transfer()).result, 'unchanged');
+
+    item.annotationComment = 'In Zotero bearbeitet';
+    assert.equal((await transfer()).result, 'conflict');
+    assert.equal(item.annotationComment, 'In Zotero bearbeitet');
+    assert.equal(writes, 2);
   });
 }
 

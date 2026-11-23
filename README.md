@@ -35,6 +35,7 @@ For a custom folder, use **TextFold-Datenordner auswählen…** and select the p
 
 - The source needs a Zotero reference recorded by TextFold. PDF placement requires an unambiguous text match in the Zotero PDF that matches TextFold's local copy. A scan without a usable text layer, an ambiguous match, or a missing PDF falls back to a child note.
 - Each transferred note has a stable identity. Repeating the transfer reuses the same Zotero item. If you independently edit a transferred note in Zotero, the add-on preserves your version and reports a conflict. If you delete a transferred item in Zotero, it stays deleted. Deleting a note in TextFold leaves the Zotero copy in place.
+- PDF annotations show your comment and any associated question and answer. Updating an untouched annotation from an earlier beta removes the old TextFold footer and tag from that same annotation.
 - The add-on reads the local TextFold library and keeps its transfer map in the Zotero profile. It makes no AI requests. Any Zotero account sync follows your Zotero settings. Keep the transfer map when moving to a new profile if you want to retain update history.
 - Zotero stores native annotations in its database and shows them at the matching passage. Use Zotero's PDF export for a copy with embedded annotations. [Zotero documentation on annotation storage](https://www.zotero.org/support/kb/annotations_in_database)
 
