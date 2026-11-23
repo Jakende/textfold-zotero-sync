@@ -25,6 +25,13 @@ async function checkDesktop() {
     const write = (file, value) => IOUtils.writeUTF8(PathUtils.join(paperDir, file), JSON.stringify(value));
     await write('meta.json', {zotero:{library:'users/0', item:item.key}});
     await write('notes.json', {format:'textfold/notes', version:1, paper:{id:paper}, notes:[note]});
+    // Use a known position in the fixture. This checks native Zotero writes and
+    // migration independently of the PDF reader's graphical initialization.
+    service.locate = async (attachment, quotes) => {
+      check(attachment.key === pdf.key && quotes.some(quote => quote.text === text), 'Wrong PDF or quote');
+      return {text, pageLabel:'1', sortIndex:'00000|000000|00060',
+        position:{pageIndex:0, rects:[[72, 716, 400, 733]]}};
+    };
     const sync = async expected => {
       const report = await service.sync({manual:true});
       check(report.status==='ok' && report.results.length===1 && report.results[0].result===expected,
