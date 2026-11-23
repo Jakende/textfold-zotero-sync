@@ -34,7 +34,7 @@ async function checkDesktop() {
     };
     const sync = async expected => {
       const report = await service.sync({manual:true});
-      check(report.status==='ok' && report.results.length===1 && report.results[0].result===expected,
+      check(report.errors.length===0 && report.results.length===1 && report.results[0].result===expected,
         JSON.stringify(report));
       return report.results[0];
     };
