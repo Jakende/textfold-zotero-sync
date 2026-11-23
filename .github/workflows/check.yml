@@ -18,3 +18,35 @@ jobs:
           python-version: '3.12'
       - run: node --test core.test.cjs platform.test.cjs
       - run: python build.py
+      - name: Test PDF annotation transfer in Zotero Desktop
+        if: runner.os == 'Windows'
+        timeout-minutes: 7
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "zotero.zip"
+          $install = Join-Path $env:RUNNER_TEMP "zotero-desktop"
+          $fixture = Join-Path $env:RUNNER_TEMP "annotate test"
+          Invoke-WebRequest -Uri 'https://www.zotero.org/download/client/dl?channel=release&platform=win-x64-zip' -OutFile $archive
+          Expand-Archive $archive $install
+          $binary = Get-ChildItem $install -Filter zotero.exe -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if (!$binary) { throw 'Zotero executable not found' }
+          python desktop-check.py $fixture
+          if ($LASTEXITCODE) { throw 'Could not prepare the test Zotero profile' }
+          $env:TEXTFOLD_DATA = Join-Path $fixture 'textfold'
+          $log = Join-Path $fixture 'zotero.log'
+          $env:MOZ_HEADLESS = '1'
+          $process = Start-Process $binary -WorkingDirectory (Split-Path $binary) -ArgumentList "-no-remote -profile `"$fixture\profile`" -datadir `"$fixture\data`"" -PassThru -RedirectStandardError $log
+          try {
+            $result = Join-Path $fixture 'result.json'
+            for ($i = 0; $i -lt 70 -and !(Test-Path $result); $i++) { Start-Sleep -Seconds 2 }
+            if (!(Test-Path $result)) {
+              Get-ChildItem (Join-Path $fixture 'profile') | Select-Object -ExpandProperty Name
+              if (Test-Path $log) { Get-Content $log -Tail 40 }
+              throw "Zotero did not return a test result (launcher exit code: $($process.ExitCode))"
+            }
+            $json = Get-Content -Raw $result
+            Write-Output $json
+            if (!(ConvertFrom-Json $json).passed) { throw 'Zotero desktop test failed' }
+          } finally {
+            if (!$process.HasExited) { Stop-Process -InputObject $process -Force }
+          }
