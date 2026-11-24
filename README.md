@@ -1,16 +1,35 @@
 # TextFold to Zotero
 
-[![Latest stable release](https://img.shields.io/github/v/release/Jakende/textfold-zotero-sync?label=release&color=2563eb)](https://github.com/Jakende/textfold-zotero-sync/releases/latest)
-[![Zotero Desktop 10.0.x](https://img.shields.io/badge/Zotero-10.0.x-b42318)](https://www.zotero.org/download/)
-[![TextFold 0.10.57](https://img.shields.io/badge/TextFold-0.10.57-42657a)](https://github.com/chenxiachan/textfold/releases/tag/v0.10.57)
-[![macOS and Windows](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows-42657a)](https://github.com/Jakende/textfold-zotero-sync#compatibility)
-[![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-42657a)](LICENSE)
+[![Release 1.1.0](docs/assets/badges/release.svg)](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0) [![Zotero 10.0.x](docs/assets/badges/zotero.svg)](https://www.zotero.org/download/) [![TextFold 0.10.57](docs/assets/badges/textfold.svg)](https://github.com/chenxiachan/textfold/releases/tag/v0.10.57) [![macOS and Windows](docs/assets/badges/platforms.svg)](#compatibility)
 
 A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Hashtags in TextFold comments become searchable Zotero tags. Optional color rules set the color of PDF annotations. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
 [Download the stable release](https://github.com/Jakende/textfold-zotero-sync/releases/latest) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
+
+## How it works
+
+```mermaid
+flowchart TD
+    accTitle: From a TextFold comment to a Zotero annotation
+    accDescr: Comment on a passage in TextFold. The add-on copies the comment and tags into Zotero. If it can locate the passage in the original PDF it creates a PDF annotation. Otherwise it creates a child note.
+
+    read["Open a Zotero source in TextFold"]:::step
+    comment["Mark a passage and add a comment<br/>Use #barrier or #method for research codes"]:::step
+    transfer["Transfer to Zotero<br/>Hashtags become tags; mapped codes set the PDF color"]:::sync
+    place{"Passage located in<br/>the matching PDF?"}:::step
+    highlight(["PDF annotation<br/>Highlight, comment, and tags"]):::outcome
+    note(["Child note<br/>Comment and tags"]):::outcome
+
+    read --> comment --> transfer --> place
+    place -->|Yes| highlight
+    place -->|No| note
+
+    classDef step fill:#eaf0f6,stroke:#70869d,color:#1b3046,stroke-width:1px
+    classDef sync fill:#204b85,stroke:#487ebd,color:#ffffff,stroke-width:1px
+    classDef outcome fill:#e5f2ee,stroke:#548775,color:#143d33,stroke-width:1px
+```
 
 ## Compatibility
 
@@ -44,6 +63,10 @@ Both platforms use the same XPI. The add-on menu uses German labels.
 3. Transfer the note. The first mapped hashtag sets the PDF color. Hashtags become Zotero tags without the `#` prefix even when they have no color rule. Matching is case-insensitive. The comment and hashtags remain available in the Markdown export.
 
 TextFold retains its reading-level colors, and the same hashtags can be used in the Obsidian export. When a passage is transferred as a Zotero child note, it receives the tags. Changing a mapping refreshes earlier imports that are still under the add-on's control. Clearing a color rule restores the original color if no mapped codes remain. Removing a hashtag from the comment removes its Zotero tag only when that tag was added by the add-on.
+
+<img src="docs/assets/zotero-settings.png" width="780" alt="TextFold to Zotero settings showing a hashtag color rule, transfer status, and the active TextFold folder">
+
+*Choose a color for each research code in Zotero’s TextFold settings.*
 
 ## TextFold library folder
 
