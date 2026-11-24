@@ -22,10 +22,16 @@ console.log('15 checks passed: matching, ambiguity, geometry, idempotency, confl
 
 const map=c.validateCodeColors([['#barrier','#ff6666'], ['Method','#2EA8E5'], ['#Klima/ÖPNV','#5fb236']]);
 assert.deepEqual(c.noteCoding({text:'Context #method\n\n#BARRIER #Method #unknown #method'},map),
-  {tags:['barrier','method'],color:'#ff6666'});
+  {tags:['barrier','method','unknown'],color:'#ff6666'});
 assert.deepEqual(c.noteCoding({text:'#Klima/ÖPNV'},map),{tags:['klima/öpnv'],color:'#5fb236'});
-assert.deepEqual(c.noteCoding({text:'A prose mention of #method'},map),{tags:[],color:null});
+assert.deepEqual(c.noteCoding({text:'A prose mention of #method'},map),{tags:['method'],color:'#2ea8e5'});
 assert.deepEqual(c.noteCoding({text:'Memo',thread:[{a:'#method'}]},map),{tags:[],color:null});
 assert.throws(()=>c.validateCodeColors([['#method','cyan']]), /Zotero-Palette/);
 assert.throws(()=>c.validateCodeColors([['#method','#ff6666'], ['METHOD','#2ea8e5']]), /bereits vorhanden/);
 assert.deepEqual(c.validateCodeColors([]),{});
+
+assert.deepEqual(c.noteCoding({text:'Windows comment\r\nSee (#Method), #Tag.\r\nExtra line.'},map),
+  {tags:['method','tag'],color:'#2ea8e5'});
+assert.deepEqual(c.noteCoding({text:'#tag'}),{tags:['tag'],color:null});
+assert.deepEqual(c.noteCoding({text:'https://example.com?q=#method [ref](#method) \\#method `#method`'}),{tags:[],color:null});
+assert.equal(c.annotationComment({text:'Mein Kommentar'}), 'Mein Kommentar');

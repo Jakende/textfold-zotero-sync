@@ -46,10 +46,13 @@ async function checkDesktop() {
     check(annotation.annotationText === text && annotation.parentKey === pdf.key, 'Wrong passage or PDF');
 
     const entry = service.state.entries[created.uri];
-    annotation.annotationComment = 'TextFold\n\n' + note.text + '\n\nZurück zu TextFold: ' + created.uri;
+    annotation.annotationComment = 'Markiert sind die zugehörigen Originalsätze.\n\n' + note.text;
     annotation.setTags([{tag:'TextFold'}, {tag:'Methode'}]);
     await annotation.saveTx();
-    entry.source = service.hash(service.core.sourceSignature(note));
+    const oldSource = JSON.parse(service.core.sourceSignature(note, true));
+    oldSource.annotationFormat = 2;
+    entry.source = service.hash(service.core.stable(oldSource));
+    entry.context = 'Markiert sind die zugehörigen Originalsätze.';
     entry.target = service.hash(service.itemState(annotation));
     const updated = await sync('updated');
     check(updated.key === created.key && pdf.getAnnotations().length === 1, 'Duplicate PDF annotation');
@@ -58,8 +61,12 @@ async function checkDesktop() {
     await sync('unchanged');
     const writeNote = () => write('notes.json', {format:'textfold/notes', version:1, paper:{id:paper}, notes:[note]});
     const applyMapping = rows => service.saveCodeColors(rows);
-    note.text += '\n\n#Grenze #method';
+    note.text += ' #Grenze,\r\nEin Nachsatz mit #method und #tag.';
     await writeNote();
+    await sync('updated');
+    check(annotation.getTags().map(t => t.tag).sort().join() === 'Methode,grenze,method,tag',
+      'Unmapped or inline hashtags were not added');
+    check(annotation.annotationColor === '#a28ae5', 'An unmapped tag changed the color');
     const preferences = service.openPreferences();
     const waitFor = async (read, label) => {
       for (let retry = 0; retry < 50; retry++) {
@@ -85,7 +92,7 @@ async function checkDesktop() {
     await waitFor(() => find('rule-status').textContent === 'Codefarben gespeichert.', 'Preferences did not save the mappings');
     preferences.close();
     check(service.report.results[0].key === created.key && annotation.annotationColor === '#ff6666', 'Red did not transfer');
-    check(annotation.getTags().map(t => t.tag).sort().join() === 'Methode,grenze,method', 'Expected both code tags and existing tag');
+    check(annotation.getTags().map(t => t.tag).sort().join() === 'Methode,grenze,method,tag', 'Expected all comment tags and existing tag');
     await applyMapping([['grenze','#5fb236'], ['method','#2ea8e5']]);
     check(service.report.results[0].key === created.key && annotation.annotationColor === '#5fb236', 'Green did not transfer in place');
     await sync('unchanged');
@@ -93,7 +100,13 @@ async function checkDesktop() {
     await writeNote();
     await applyMapping([]);
     check(annotation.annotationColor === '#a28ae5', 'Original color was not restored');
-    check(annotation.getTags().map(t => t.tag).join() === 'Methode', 'Removing mappings changed other tags');
+    check(annotation.getTags().map(t => t.tag).sort().join() === 'Methode,grenze,method,tag',
+      'Removing mappings changed the comment tags');
+    note.text = 'Wissenschaftlicher Kommentar #Grenze.';
+    await writeNote();
+    await sync('updated');
+    check(annotation.getTags().map(t => t.tag).sort().join() === 'Methode,grenze',
+      'Removing hashtags should remove only those added by the add-on');
 
     annotation.annotationComment = 'In Zotero bearbeitet';
     await annotation.saveTx();

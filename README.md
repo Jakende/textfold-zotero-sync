@@ -1,8 +1,8 @@
 # TextFold to Zotero
 
-A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Optional hashtag rules color PDF annotations and add searchable Zotero tags. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
+A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Hashtags in TextFold comments become searchable Zotero tags. Optional color rules set the color of PDF annotations. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
-[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.6) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
+[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.7) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
 
@@ -19,7 +19,7 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
 
 ## Install and try a transfer
 
-1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.6).
+1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.7).
 2. In Zotero, open **Tools → Plugins** (also called **Add-ons** in some versions or translations) and drag the XPI onto the window. See the [Zotero installation guide](https://www.zotero.org/support/plugins).
 3. In TextFold, open a source using its Zotero library picker. To try PDF highlighting, pick an item with a local PDF and add a comment to a passage in the original text.
 4. In Zotero, open **Tools → TextFold → Zotero → Jetzt übertragen**. Check the PDF reader for the highlight or open the child note under the source item.
@@ -28,7 +28,7 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
 ## Color annotations with research codes
 
 1. In Zotero, open **Tools → TextFold → Zotero → Einstellungen und Status…**. Under **Codefarben**, choose **Zuordnung hinzufügen**, enter a hashtag, and click a swatch in the Zotero palette. For example, add `#barrier` in red and `#method` in blue. Choose **Speichern** to apply the rules, or **Verwerfen** to restore the last saved rules.
-2. Write a passage comment in TextFold. Put the hashtags on their own last line:
+2. Add hashtags anywhere in a passage comment in TextFold. A final line containing only hashtags takes priority when picking a color. For example:
 
    ```text
    The paper identifies fragmented responsibilities as a barrier.
@@ -36,9 +36,9 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
    #barrier #method
    ```
 
-3. Transfer the note. The first mapped hashtag on the line sets the PDF color. All mapped hashtags become Zotero tags, without the `#` prefix. Matching is case-insensitive. Unmapped hashtags stay in the comment and Markdown export.
+3. Transfer the note. The first mapped hashtag sets the PDF color. Hashtags become Zotero tags without the `#` prefix even when they have no color rule. Matching is case-insensitive. The comment and hashtags remain available in the Markdown export.
 
-TextFold retains its reading-level colors, and the same hashtags can be used in the Obsidian export. When a passage is transferred as a Zotero child note, it receives the tags. Changing a mapping refreshes earlier imports that are still under the add-on's control. Removing a mapped code restores the original color if no mapped codes remain and removes only the tags added by the add-on.
+TextFold retains its reading-level colors, and the same hashtags can be used in the Obsidian export. When a passage is transferred as a Zotero child note, it receives the tags. Changing a mapping refreshes earlier imports that are still under the add-on's control. Clearing a color rule restores the original color if no mapped codes remain. Removing a hashtag from the comment removes its Zotero tag only when that tag was added by the add-on.
 
 ## TextFold library folder
 
@@ -50,7 +50,7 @@ In **Einstellungen und Status…**, use **Ordner auswählen…** to select the p
 
 - The source needs a Zotero reference recorded by TextFold. PDF placement requires an unambiguous text match in the Zotero PDF that matches TextFold's local copy. A scan without a usable text layer, an ambiguous match, or a missing PDF falls back to a child note.
 - Each transferred note has a stable identity. Repeating the transfer reuses the same Zotero item. If you independently edit a transferred note in Zotero, the add-on preserves your version and reports a conflict. If you delete a transferred item in Zotero, it stays deleted. Deleting a note in TextFold leaves the Zotero copy in place.
-- PDF annotations show your comment and any associated question and answer. Updating an untouched annotation from an earlier beta removes the old TextFold footer and tag from that same annotation.
+- PDF annotations show your comment and any associated question and answer. Updating an untouched annotation from an earlier beta also removes generated source-text notices, the old TextFold footer, and the old automatic TextFold tag.
 - The add-on reads the local TextFold library and keeps its transfer map in the Zotero profile. It makes no AI requests. Any Zotero account sync follows your Zotero settings. Keep the transfer map when moving to a new profile if you want to retain update history.
 - Zotero stores native annotations in its database and shows them at the matching passage. Use Zotero's PDF export for a copy with embedded annotations. [Zotero documentation on annotation storage](https://www.zotero.org/support/kb/annotations_in_database)
 

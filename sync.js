@@ -115,16 +115,16 @@ var TextFoldZoteroSync = new class {
   }
   async quotations(id,note) {
     if(note.anchor?.on==='paper'||note.anchor?.lost)return [];
-    const quotes=[]; if(note.anchor?.quote?.exact)quotes.push({text:note.anchor.quote.exact,context:''});
+    const quotes=[]; if(note.anchor?.quote?.exact)quotes.push({text:note.anchor.quote.exact});
     if(note.anchor?.unit) {
       const d=await this.document(id); const unit=d?.sections?.flatMap(s=>s.units||[]).find(u=>u.id===note.anchor.unit);
       if(unit) {
         const sents=note.anchor.sents;
         if(sents?.length&&Array.isArray(unit.sentences)){
           const text=sents.map(i=>unit.sentences[i]).filter(Boolean).join(' ');
-          if(text)quotes.push({text,context:'Markiert sind die zugehörigen Originalsätze.'});
+          if(text)quotes.push({text});
         }
-        if(unit.full)quotes.push({text:unit.full,context:'Markiert ist der zugehörige Originalabsatz.'});
+        if(unit.full)quotes.push({text:unit.full});
       }
     }
     return quotes.filter((q,i)=>this.core.normalized(q.text).length>=18&&quotes.findIndex(x=>this.core.normalized(x.text)===this.core.normalized(q.text))===i);
@@ -158,7 +158,7 @@ var TextFoldZoteroSync = new class {
         const top=Math.max(0,Math.floor(box[3]-box[1]-Math.max(...range.position.rects.map(r=>r[3]))));
         const meta=view.getAnnotationMeta?view.getAnnotationMeta(native(range.position)):{sortIndex:[String(m.page).padStart(5,'0'),String(m.start).padStart(6,'0'),String(top).padStart(5,'0')].join('|')};
         const annotation=view._getAnnotationFromSelectionRanges(native([{...range,sortIndex:meta.sortIndex}]),'highlight');
-        if(annotation?.position?.rects?.length&&annotation.text&&annotation.sortIndex)return {...JSON.parse(JSON.stringify(annotation)),context:quote.context};
+        if(annotation?.position?.rects?.length&&annotation.text&&annotation.sortIndex)return JSON.parse(JSON.stringify(annotation));
       }
       return null;
     }finally {if(opened&&reader&&Zotero.getMainWindow().Zotero_Tabs?.selectedID!==reader.tabID)await reader.close();}
@@ -200,7 +200,7 @@ var TextFoldZoteroSync = new class {
       const json=item?Zotero.Annotations.toJSONSync(item):{...geometry,key,type:'highlight',color:'#a28ae5'};
       if(item&&geometry)for(const field of ['text','position','pageLabel','sortIndex'])json[field]=geometry[field];
       json.key=key;
-      json.comment=this.core.annotationComment(note,entry?.context||geometry?.context||'');
+      json.comment=this.core.annotationComment(note);
       if (coding.color && !baseColor) baseColor=json.color;
       if (baseColor) json.color=coding.color || baseColor;
       json.tags=(json.tags||[]).filter(tag=>tag.name!=='TextFold' && (!addedTags.has(tag.name) || coding.tags.includes(tag.name)));
@@ -218,7 +218,7 @@ var TextFoldZoteroSync = new class {
     }
     if(!old)options.journal?.recordCreatedItem(item);
     const isAnnotation=item.isAnnotation();
-    this.state.entries[uri]={key:item.key,libraryID:item.libraryID,parent:parent.key,attachment:isAnnotation?item.parentItem.key:null,kind:isAnnotation?'annotation':'note',source:entry?source:this.hash(this.core.sourceSignature(note,isAnnotation,coding)),addedTags:[...addedTags].filter(tag=>coding.tags.includes(tag)),baseColor:coding.color&&isAnnotation?baseColor:undefined,anchor,target:this.hash(this.itemState(item)),context:geometry?.context||entry?.context||'',reason:entry?.reason||reason,time:new Date().toISOString()};
+    this.state.entries[uri]={key:item.key,libraryID:item.libraryID,parent:parent.key,attachment:isAnnotation?item.parentItem.key:null,kind:isAnnotation?'annotation':'note',source:entry?source:this.hash(this.core.sourceSignature(note,isAnnotation,coding)),addedTags:[...addedTags].filter(tag=>coding.tags.includes(tag)),baseColor:coding.color&&isAnnotation?baseColor:undefined,anchor,target:this.hash(this.itemState(item)),reason:entry?.reason||reason,time:new Date().toISOString()};
     await this.persist();
     return {result:old?'updated':'created',uri,key:item.key,id:item.id,kind:this.state.entries[uri].kind,pageIndex:item.isAnnotation()?JSON.parse(item.annotationPosition).pageIndex:null,reason};
   }

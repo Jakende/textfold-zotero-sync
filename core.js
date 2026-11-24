@@ -26,24 +26,30 @@ var TextFoldSyncCore = (() => {
     return Object.fromEntries(map);
   }
   function noteCoding(note, map = {}) {
-    // A final tags-only line distinguishes intentional coding from prose and generated answers.
-    const tokens = (note.text || '').trim().split(/\r?\n/).pop().trim().split(/\s+/u);
-    if (!tokens.every(token => token.startsWith('#') && tagPattern.test(tagName(token)))) return {tags:[],color:null};
-    const tags = [...new Set(tokens.map(tagName))].filter(tag => Object.hasOwn(map, tag));
-    return {tags, color:tags.length ? map[tags[0]] : null};
+    const text = (note.text || '').normalize('NFC').trim()
+      .replace(/`[^`]*`|https?:\/\/[^\s<>]+|\]\(\s*#[^)]*\)/gu, '');
+    const lastLine = text.split(/\r\n?|\n/u).pop().trim().split(/\s+/u);
+    // Keep the priority of the dedicated code line supported by older releases.
+    const finalTags = lastLine.every(token => token.startsWith('#') && tagPattern.test(tagName(token)))
+      ? lastLine.map(tagName)
+      : [];
+    const inlineTags = [...text.matchAll(/(?<![\p{L}\p{N}_/#\\])#([\p{L}\p{N}_/-]{1,120})(?![\p{L}\p{N}_/-])/gu)]
+      .map(match => tagName(match[1]));
+    const tags = [...new Set([...finalTags, ...inlineTags])];
+    const firstMapped = tags.find(tag => Object.hasOwn(map, tag));
+    return {tags, color:firstMapped ? map[firstMapped] : null};
   }
   function sourceSignature(note, isAnnotation = false, coding = {tags:[]}) {
     const source = {kind: note.kind, text: note.text || '', anchor: note.anchor || {},
       thread: (note.thread || (note.ask ? [note.ask] : [])).map(t => ({q:t.q||'',a:t.a||'',error:t.error||'',cites:t.cites||[]}))};
     // Refresh existing PDF comments after the format change without rewriting child notes.
-    if (isAnnotation) source.annotationFormat = 2;
+    if (isAnnotation) source.annotationFormat = 3;
     if (coding.tags.length) source.coding = isAnnotation ? coding : coding.tags;
     return stable(source);
   }
   const uri = (paper, note) => 'textfold://open?paper=' + encodeURIComponent(paper) + '&n=' + encodeURIComponent(note);
-  function annotationComment(note, context = '') {
+  function annotationComment(note) {
     const lines = [];
-    if (context) lines.push(context);
     if (note.text) lines.push(note.text);
     for (const t of note.thread || (note.ask ? [note.ask] : [])) {
       if (t.q) lines.push('Frage: ' + t.q);
