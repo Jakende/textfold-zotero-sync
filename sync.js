@@ -169,7 +169,10 @@ var TextFoldZoteroSync = new class {
   }
   async transfer(paper,meta,note,parent,att,options={}) {
     const uri=this.core.uri(paper,note.id),entry=this.state.entries[uri];
-    const source=this.hash(this.core.sourceSignature(note, entry?.kind==='annotation'));
+    const coding=this.core.noteCoding(note,this.config.codeColors);
+    const source=this.hash(this.core.sourceSignature(note, entry?.kind==='annotation', coding));
+    const addedTags=new Set(entry?.addedTags||[]);
+    let baseColor=entry?.baseColor;
     if(entry&&(entry.libraryID!==parent.libraryID||entry.parent!==parent.key))return {result:'conflict',reason:'Die Zotero-Quellenzuordnung hat sich geändert; keine automatische Verschiebung oder Neuanlage.',uri};
     const key=entry?.key||this.key(uri+'|'+parent.libraryKey);
     let item=Zotero.Items.getByLibraryAndKey(parent.libraryID,key)||null;
@@ -198,15 +201,24 @@ var TextFoldZoteroSync = new class {
       if(item&&geometry)for(const field of ['text','position','pageLabel','sortIndex'])json[field]=geometry[field];
       json.key=key;
       json.comment=this.core.annotationComment(note,entry?.context||geometry?.context||'');
-      json.tags=(json.tags||[]).filter(tag=>tag.name!=='TextFold');
+      if (coding.color && !baseColor) baseColor=json.color;
+      if (baseColor) json.color=coding.color || baseColor;
+      json.tags=(json.tags||[]).filter(tag=>tag.name!=='TextFold' && (!addedTags.has(tag.name) || coding.tags.includes(tag.name)));
+      for (const name of coding.tags) {
+        if (!json.tags.some(tag=>tag.name===name)) {json.tags.push({name});addedTags.add(name);}
+      }
       item=await Zotero.Annotations.saveFromJSON(item?.parentItem||att.item,json);
     }else {
       if(!item){item=new Zotero.Item('note');item.libraryID=parent.libraryID;item.key=key;await item.loadPrimaryData();item.parentID=parent.id;item.addTag('TextFold');}
+      for (const tag of addedTags) if (!coding.tags.includes(tag)) item.removeTag(tag);
+      for (const tag of coding.tags) {
+        if (!item.getTags().some(existing=>existing.tag===tag)) {item.addTag(tag);addedTags.add(tag);}
+      }
       item.setNote(this.core.noteHTML(paper,note,entry?.reason||reason));await item.saveTx({skipSelect:true});
     }
     if(!old)options.journal?.recordCreatedItem(item);
     const isAnnotation=item.isAnnotation();
-    this.state.entries[uri]={key:item.key,libraryID:item.libraryID,parent:parent.key,attachment:isAnnotation?item.parentItem.key:null,kind:isAnnotation?'annotation':'note',source:entry?source:this.hash(this.core.sourceSignature(note,isAnnotation)),anchor,target:this.hash(this.itemState(item)),context:geometry?.context||entry?.context||'',reason:entry?.reason||reason,time:new Date().toISOString()};
+    this.state.entries[uri]={key:item.key,libraryID:item.libraryID,parent:parent.key,attachment:isAnnotation?item.parentItem.key:null,kind:isAnnotation?'annotation':'note',source:entry?source:this.hash(this.core.sourceSignature(note,isAnnotation,coding)),addedTags:[...addedTags].filter(tag=>coding.tags.includes(tag)),baseColor:coding.color&&isAnnotation?baseColor:undefined,anchor,target:this.hash(this.itemState(item)),context:geometry?.context||entry?.context||'',reason:entry?.reason||reason,time:new Date().toISOString()};
     await this.persist();
     return {result:old?'updated':'created',uri,key:item.key,id:item.id,kind:this.state.entries[uri].kind,pageIndex:item.isAnnotation()?JSON.parse(item.annotationPosition).pageIndex:null,reason};
   }
@@ -268,6 +280,24 @@ var TextFoldZoteroSync = new class {
       return report;
     }finally{this.running=false;}
   }
+  async chooseCodeColors(window) {
+    const current = Object.entries(this.config.codeColors || {}).map(([tag, color]) => '#' + tag + '=' + color).join(', ');
+    const value = window.prompt('Farbzuordnungen, z. B. #barrier=red, #method=blue\nFarben: yellow, red, green, blue, purple, magenta, orange, gray.\nLeer lassen, um die Zuordnungen zu entfernen.', current);
+    if (value === null) return;
+    const codeColors = this.core.parseCodeColors(value);
+    if (this.running || this.changingLibrary) throw new Error('Warte, bis die laufende Übertragung abgeschlossen ist.');
+    this.changingLibrary = true;
+    try {
+      const config = {...this.config, codeColors};
+      await this.write('config.json', config);
+      this.config = config;
+      this.files.clear();
+    } finally {
+      this.changingLibrary = false;
+    }
+    await this.sync({manual:true});
+    window.alert(this.describe());
+  }
   async enabled(value) {
     if (this.changingLibrary) throw new Error('Warte, bis der Datenordner gespeichert ist.');
     this.changingLibrary = true;
@@ -301,6 +331,7 @@ var TextFoldZoteroSync = new class {
     for(const [label,callback] of [
       ['Jetzt übertragen',async()=>{await this.sync({manual:true});window.alert(this.describe());}],
       ['Status anzeigen',()=>window.alert(this.describe())],
+      ['Codefarben zuordnen…', () => this.chooseCodeColors(window)],
       ['TextFold-Datenordner auswählen…', () => this.chooseLibrary(window)],
       ['TextFold-Standardordner verwenden', async () => {await this.saveLibraryRoot(null);window.alert(this.describe());}],
       ['Automatische Übertragung ein/aus',async()=>window.alert('Automatische Übertragung: '+(await this.enabled(!this.config.enabled)?'ein':'aus'))]

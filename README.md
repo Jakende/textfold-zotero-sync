@@ -1,8 +1,8 @@
 # TextFold to Zotero
 
-A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
+A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Optional hashtag rules color PDF annotations and add searchable Zotero tags. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
-[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.2) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
+[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.4) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
 
@@ -10,20 +10,35 @@ This is an independent community add-on maintained by [Jakende](https://github.c
 
 | Component | Beta status |
 | --- | --- |
-| Zotero Desktop | 10.0.x. Verified with Zotero 10.0.9. |
+| Zotero Desktop | 10.0.x. Verified with Zotero 10.0.9 on macOS and 10.0.8 on Windows. |
 | TextFold | Verified with the local library format from TextFold 0.10.57. |
-| macOS | Transfer and Zotero upload verified on Apple silicon. The packaged beta also passed a startup test in a separate Zotero profile. |
-| Windows | Standard and custom paths covered by automated tests. Annotation creation and updates verified in Zotero Desktop 10.0.8 with a fixture. A full test with both desktop apps on Windows is pending. |
+| macOS | Transfer and Zotero upload verified on Apple silicon. Hashtag mapping and updates passed in a separate Zotero profile. |
+| Windows | Standard and custom paths covered by automated tests. PDF annotation and hashtag mapping verified in Zotero Desktop with fixture data. A hands-on test with both desktop apps on Windows is pending. |
 
 Both platforms use the same XPI. This beta uses German labels in the add-on menu. The steps below give the exact menu labels.
 
 ## Install and try a transfer
 
-1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.2).
+1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.4).
 2. In Zotero, open **Tools → Plugins** (also called **Add-ons** in some versions or translations) and drag the XPI onto the window. See the [Zotero installation guide](https://www.zotero.org/support/plugins).
 3. In TextFold, open a source using its Zotero library picker. To try PDF highlighting, pick an item with a local PDF and add a comment to a passage in the original text.
 4. In Zotero, open **Tools → TextFold → Zotero → Jetzt übertragen**. Check the PDF reader for the highlight or open the child note under the source item.
 5. To enable automatic transfers, select **Automatische Übertragung ein/aus**. On a fresh installation the automatic mode starts paused. Once enabled, Zotero checks for changes about every five seconds while it runs.
+
+## Color annotations with research codes
+
+1. In Zotero, open **Tools → TextFold → Zotero → Codefarben zuordnen…** and enter your own mapping, for example `#barrier=red, #method=blue`. Use `yellow`, `red`, `green`, `blue`, `purple`, `magenta`, `orange`, `gray`, or the corresponding Zotero hex values. Clear the field to remove your mappings.
+2. Write a passage comment in TextFold. Put the hashtags on their own last line:
+
+   ```text
+   The paper identifies fragmented responsibilities as a barrier.
+
+   #barrier #method
+   ```
+
+3. Transfer the note. The first mapped hashtag on the line sets the PDF color. All mapped hashtags become Zotero tags, without the `#` prefix. Matching is case-insensitive. Unmapped hashtags stay in the comment and Markdown export.
+
+TextFold retains its reading-level colors, and the same hashtags can be used in the Obsidian export. When a passage is transferred as a Zotero child note, it receives the tags. Changing a mapping refreshes earlier imports that are still under the add-on's control. Removing a mapped code restores the original color if no mapped codes remain and removes only the tags added by the add-on.
 
 ### TextFold library folder
 
@@ -62,6 +77,6 @@ node --test core.test.cjs platform.test.cjs
 python build.py
 ```
 
-The XPI is written to `dist/`. GitHub Actions runs the tests and build on macOS and Windows. These checks cover the platform path logic and packaging. The native Windows check uses an isolated Zotero profile and a fixture.
+The XPI is written to `dist/`. GitHub Actions runs the tests and build on macOS and Windows. The Windows job also runs Zotero Desktop in an isolated profile with a fixed PDF position and synthetic TextFold data to verify color updates, tag ownership, and conflict protection.
 
 Licensed under the [GNU Affero General Public License, version 3](LICENSE).

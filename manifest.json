@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "TextFold → Zotero",
-  "version": "1.1.0-beta.2",
+  "version": "1.1.0-beta.4",
   "description": "Bring TextFold highlights, comments, and questions into Zotero as PDF annotations or child notes.",
   "author": "Jakende",
   "homepage_url": "https://github.com/Jakende/textfold-zotero-sync",

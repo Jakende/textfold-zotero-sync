@@ -19,3 +19,13 @@ assert(!c.noteHTML('paper',note).includes('<script>'));
 assert.equal(c.sourceSignature({...note,updated:'old'}),c.sourceSignature({...note,updated:'new'}));
 assert.notEqual(c.sourceSignature(note),c.sourceSignature({...note,text:'edited'}));
 console.log('15 checks passed: matching, ambiguity, geometry, idempotency, conflict/deletion handling, HTML escaping.');
+
+const map=c.parseCodeColors('#barrier=red, Method=BLUE, #Klima/ÖPNV=#5fb236');
+assert.deepEqual(c.noteCoding({text:'Context #method\n\n#BARRIER #Method #unknown #method'},map),
+  {tags:['barrier','method'],color:'#ff6666'});
+assert.deepEqual(c.noteCoding({text:'#Klima/ÖPNV'},map),{tags:['klima/öpnv'],color:'#5fb236'});
+assert.deepEqual(c.noteCoding({text:'A prose mention of #method'},map),{tags:[],color:null});
+assert.deepEqual(c.noteCoding({text:'Memo',thread:[{a:'#method'}]},map),{tags:[],color:null});
+assert.throws(()=>c.parseCodeColors('#method=cyan'), /Ungültige/);
+assert.throws(()=>c.parseCodeColors('#method=red, METHOD=blue'), /Ungültige/);
+assert.deepEqual(c.parseCodeColors(''),{});

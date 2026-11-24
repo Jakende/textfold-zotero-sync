@@ -7,11 +7,38 @@ var TextFoldSyncCore = (() => {
     if (value && typeof value === 'object') return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + stable(value[k])).join(',') + '}';
     return JSON.stringify(value ?? null);
   }
-  function sourceSignature(note, isAnnotation = false) {
+  const colors = {
+    yellow:'#ffd400', red:'#ff6666', green:'#5fb236', blue:'#2ea8e5',
+    purple:'#a28ae5', magenta:'#e56eee', orange:'#f19837', gray:'#aaaaaa',
+  };
+  const tagPattern = /^[\p{L}\p{N}_/-]{1,120}$/u;
+  const tagName = value => value.replace(/^#/, '').normalize('NFC').toLowerCase();
+  function parseCodeColors(value) {
+    const map = new Map();
+    for (const part of value.trim() ? value.split(',') : []) {
+      const [tag, color, ...rest] = part.split('=').map(piece => piece.trim());
+      const name = tagName(tag);
+      const hex = colors[color?.toLowerCase()] || color?.toLowerCase();
+      if (!tagPattern.test(name) || rest.length || !Object.values(colors).includes(hex) || map.has(name)) {
+        throw new Error('Ungültige Farbzuordnung: ' + part.trim());
+      }
+      map.set(name, hex);
+    }
+    return Object.fromEntries(map);
+  }
+  function noteCoding(note, map = {}) {
+    // A final tags-only line distinguishes intentional coding from prose and generated answers.
+    const tokens = (note.text || '').trim().split(/\r?\n/).pop().trim().split(/\s+/u);
+    if (!tokens.every(token => token.startsWith('#') && tagPattern.test(tagName(token)))) return {tags:[],color:null};
+    const tags = [...new Set(tokens.map(tagName))].filter(tag => Object.hasOwn(map, tag));
+    return {tags, color:tags.length ? map[tags[0]] : null};
+  }
+  function sourceSignature(note, isAnnotation = false, coding = {tags:[]}) {
     const source = {kind: note.kind, text: note.text || '', anchor: note.anchor || {},
       thread: (note.thread || (note.ask ? [note.ask] : [])).map(t => ({q:t.q||'',a:t.a||'',error:t.error||'',cites:t.cites||[]}))};
     // Refresh existing PDF comments after the format change without rewriting child notes.
     if (isAnnotation) source.annotationFormat = 2;
+    if (coding.tags.length) source.coding = isAnnotation ? coding : coding.tags;
     return stable(source);
   }
   const uri = (paper, note) => 'textfold://open?paper=' + encodeURIComponent(paper) + '&n=' + encodeURIComponent(note);
@@ -78,6 +105,6 @@ var TextFoldSyncCore = (() => {
     if (entry && source === entry.source) return 'unchanged';
     return item ? 'update' : 'create';
   }
-  return {normalized, stable, sourceSignature, uri, annotationComment, noteHTML, pageIndex, matches, selection, decision};
+  return {normalized, stable, sourceSignature, parseCodeColors, noteCoding, uri, annotationComment, noteHTML, pageIndex, matches, selection, decision};
 })();
 if (typeof module !== 'undefined') module.exports = TextFoldSyncCore;
