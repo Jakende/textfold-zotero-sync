@@ -1,27 +1,32 @@
 # TextFold to Zotero
 
+[![Latest stable release](https://img.shields.io/github/v/release/Jakende/textfold-zotero-sync?label=release&color=2563eb)](https://github.com/Jakende/textfold-zotero-sync/releases/latest)
+[![Zotero Desktop 10.0.x](https://img.shields.io/badge/Zotero-10.0.x-b42318)](https://www.zotero.org/download/)
+[![TextFold 0.10.57](https://img.shields.io/badge/TextFold-0.10.57-42657a)](https://github.com/chenxiachan/textfold/releases/tag/v0.10.57)
+[![macOS and Windows](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows-42657a)](https://github.com/Jakende/textfold-zotero-sync#compatibility)
+[![License AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-42657a)](LICENSE)
+
 A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Hashtags in TextFold comments become searchable Zotero tags. Optional color rules set the color of PDF annotations. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
-[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.7) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
+[Download the stable release](https://github.com/Jakende/textfold-zotero-sync/releases/latest) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
 
 ## Compatibility
 
-| Component | Beta status |
+| Component | Supported version or platform |
 | --- | --- |
-| Zotero Desktop | 10.0.x. Verified with Zotero 10.0.9 on macOS and 10.0.8 on Windows. |
-| TextFold | Verified with the local library format from TextFold 0.10.57. |
-| macOS | Transfer and Zotero upload verified on Apple silicon. Hashtag mapping and updates passed in a separate Zotero profile. |
-| Windows | Standard and custom paths covered by automated tests. PDF annotation and hashtag mapping verified in Zotero Desktop with fixture data. A hands-on test with both desktop apps on Windows is pending. |
+| Zotero Desktop | 10.0.x |
+| TextFold | 0.10.57 |
+| Operating systems | macOS and Windows |
 
-Both platforms use the same XPI. This beta uses German labels in the add-on menu. The steps below give the exact menu labels.
+Both platforms use the same XPI. The add-on menu uses German labels.
 
-## Install and try a transfer
+## Install and transfer notes
 
-1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.7).
+1. Download the `.xpi` under **Assets** in the [stable release](https://github.com/Jakende/textfold-zotero-sync/releases/latest).
 2. In Zotero, open **Tools → Plugins** (also called **Add-ons** in some versions or translations) and drag the XPI onto the window. See the [Zotero installation guide](https://www.zotero.org/support/plugins).
-3. In TextFold, open a source using its Zotero library picker. To try PDF highlighting, pick an item with a local PDF and add a comment to a passage in the original text.
+3. In TextFold, open a source using its Zotero library picker. For a PDF annotation, pick an item with a local PDF and add a comment to a passage in the original text.
 4. In Zotero, open **Tools → TextFold → Zotero → Jetzt übertragen**. Check the PDF reader for the highlight or open the child note under the source item.
 5. To enable automatic transfers, open **Einstellungen und Status…** and enable **Automatisch übertragen**. On a fresh installation the automatic mode starts paused. Once enabled, Zotero checks for changes about every five seconds while it runs.
 
@@ -68,15 +73,14 @@ The PDF location code draws on prior work in [LLM-for-Zotero](https://github.com
 
 ## Feedback and development
 
-Windows test reports are particularly useful. In a [GitHub issue](https://github.com/Jakende/textfold-zotero-sync/issues/new), include your OS, Zotero and TextFold versions, add-on version, and the steps to reproduce the behavior. Share a public sample PDF or anonymized details when possible.
+In a [GitHub issue](https://github.com/Jakende/textfold-zotero-sync/issues/new), include your OS, Zotero and TextFold versions, add-on version, and the steps to reproduce the behavior. Share a public sample PDF or anonymized details when possible.
 
-To build from source with Node.js and Python:
+To build the XPI from source, run:
 
 ```sh
-node --test core.test.cjs platform.test.cjs
 python build.py
 ```
 
-The XPI is written to `dist/`. GitHub Actions runs the tests and build on macOS and Windows. The Windows job also runs Zotero Desktop in an isolated profile with a fixed PDF position and synthetic TextFold data to verify color updates, tag ownership, and conflict protection.
+The XPI is written to `dist/`.
 
 Licensed under the [GNU Affero General Public License, version 3](LICENSE).
