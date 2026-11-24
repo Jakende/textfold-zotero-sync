@@ -14,6 +14,14 @@ async function startup({rootURI}) {
   Services.scriptloader.loadSubScript(rootURI + 'sync.js', scope);
   await scope.TextFoldZoteroSync.start();
   Zotero.TextFoldZoteroSync = scope.TextFoldZoteroSync;
+  if (Zotero.PreferencePanes) await Zotero.PreferencePanes.register({
+    pluginID: 'textfold-zotero-sync@local.jakende',
+    id: 'textfold-zotero-settings',
+    label: 'TextFold → Zotero',
+    src: 'preferences.xhtml',
+    scripts: ['preferences.js'],
+    stylesheets: ['preferences.css'],
+  });
   for (const window of Zotero.getMainWindows()) scope.TextFoldZoteroSync.addMenu(window);
 }
 function onMainWindowLoad({window}) { scope?.TextFoldZoteroSync.addMenu(window); }

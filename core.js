@@ -13,15 +13,14 @@ var TextFoldSyncCore = (() => {
   };
   const tagPattern = /^[\p{L}\p{N}_/-]{1,120}$/u;
   const tagName = value => value.replace(/^#/, '').normalize('NFC').toLowerCase();
-  function parseCodeColors(value) {
+  function validateCodeColors(rows) {
     const map = new Map();
-    for (const part of value.trim() ? value.split(',') : []) {
-      const [tag, color, ...rest] = part.split('=').map(piece => piece.trim());
-      const name = tagName(tag);
-      const hex = colors[color?.toLowerCase()] || color?.toLowerCase();
-      if (!tagPattern.test(name) || rest.length || !Object.values(colors).includes(hex) || map.has(name)) {
-        throw new Error('Ungültige Farbzuordnung: ' + part.trim());
-      }
+    for (const [tag, color] of rows) {
+      const name = tagName(tag.trim());
+      const hex = color.toLowerCase();
+      if (!tagPattern.test(name)) throw new Error('Gib einen gültigen Hashtag ein.');
+      if (!Object.values(colors).includes(hex)) throw new Error('Wähle eine Farbe aus der Zotero-Palette.');
+      if (map.has(name)) throw new Error('Der Hashtag #' + name + ' ist bereits vorhanden.');
       map.set(name, hex);
     }
     return Object.fromEntries(map);
@@ -105,6 +104,6 @@ var TextFoldSyncCore = (() => {
     if (entry && source === entry.source) return 'unchanged';
     return item ? 'update' : 'create';
   }
-  return {normalized, stable, sourceSignature, parseCodeColors, noteCoding, uri, annotationComment, noteHTML, pageIndex, matches, selection, decision};
+  return {normalized, stable, sourceSignature, colors, validateCodeColors, noteCoding, uri, annotationComment, noteHTML, pageIndex, matches, selection, decision};
 })();
 if (typeof module !== 'undefined') module.exports = TextFoldSyncCore;

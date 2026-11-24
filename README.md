@@ -2,7 +2,7 @@
 
 A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Optional hashtag rules color PDF annotations and add searchable Zotero tags. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
-[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.4) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
+[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.5) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
 
@@ -19,15 +19,15 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
 
 ## Install and try a transfer
 
-1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.4).
+1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.5).
 2. In Zotero, open **Tools → Plugins** (also called **Add-ons** in some versions or translations) and drag the XPI onto the window. See the [Zotero installation guide](https://www.zotero.org/support/plugins).
 3. In TextFold, open a source using its Zotero library picker. To try PDF highlighting, pick an item with a local PDF and add a comment to a passage in the original text.
 4. In Zotero, open **Tools → TextFold → Zotero → Jetzt übertragen**. Check the PDF reader for the highlight or open the child note under the source item.
-5. To enable automatic transfers, select **Automatische Übertragung ein/aus**. On a fresh installation the automatic mode starts paused. Once enabled, Zotero checks for changes about every five seconds while it runs.
+5. To enable automatic transfers, open **Einstellungen und Status…** and enable **Automatisch übertragen**. On a fresh installation the automatic mode starts paused. Once enabled, Zotero checks for changes about every five seconds while it runs.
 
 ## Color annotations with research codes
 
-1. In Zotero, open **Tools → TextFold → Zotero → Codefarben zuordnen…** and enter your own mapping, for example `#barrier=red, #method=blue`. Use `yellow`, `red`, `green`, `blue`, `purple`, `magenta`, `orange`, `gray`, or the corresponding Zotero hex values. Clear the field to remove your mappings.
+1. In Zotero, open **Tools → TextFold → Zotero → Einstellungen und Status…**. Under **Codefarben**, choose **Zuordnung hinzufügen**, enter a hashtag, and select a Zotero color. For example, add `#barrier` in red and `#method` in blue. Choose **Speichern** to apply the rules, or **Verwerfen** to restore the last saved rules.
 2. Write a passage comment in TextFold. Put the hashtags on their own last line:
 
    ```text
@@ -40,11 +40,11 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
 
 TextFold retains its reading-level colors, and the same hashtags can be used in the Obsidian export. When a passage is transferred as a Zotero child note, it receives the tags. Changing a mapping refreshes earlier imports that are still under the add-on's control. Removing a mapped code restores the original color if no mapped codes remain and removes only the tags added by the add-on.
 
-### TextFold library folder
+## TextFold library folder
 
 The add-on detects the default TextFold folder on macOS (`~/Library/Application Support/TextFold`) and Windows (`%LOCALAPPDATA%\TextFold`). It can also use an inherited `TEXTFOLD_DATA` setting. [TextFold desktop documentation](https://github.com/chenxiachan/textfold/blob/main/desktop/README.md)
 
-For a custom folder, use **TextFold-Datenordner auswählen…** and select the parent of the `papers` folder. **Status anzeigen** shows the active folder and any conflicts. **TextFold-Standardordner verwenden** clears a manual selection.
+In **Einstellungen und Status…**, use **Ordner auswählen…** to select the parent of the `papers` folder. **Standard verwenden** clears a manual selection. The **Übertragung** section shows the last check and lists any conflicts under **Hinweise**.
 
 ## Transfers and data
 

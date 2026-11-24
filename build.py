@@ -19,7 +19,7 @@ if args.update_url:
 args.out.mkdir(parents=True, exist_ok=True)
 target = args.out / f"TextFold-Zotero-Sync-{manifest['version']}.xpi"
 with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
-    for name in ("manifest.json", "bootstrap.js", "core.js", "sync.js", "LICENSE", "NOTICE"):
+    for name in ("manifest.json", "bootstrap.js", "core.js", "sync.js", "preferences.xhtml", "preferences.js", "preferences.css", "LICENSE", "NOTICE"):
         payload = (
             (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode()
             if name == "manifest.json"

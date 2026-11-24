@@ -145,16 +145,13 @@ test('Windows without LOCALAPPDATA can configure a folder from the menu', async 
   const host = createHost('WINNT', {available: [path.win32.join(custom, 'papers')]});
   const service = await host.start();
   assert.equal((await service.sync()).status, 'waiting-for-textfold');
-  assert.match(service.describe(), /TextFold-Daten fehlen/);
   await service.chooseLibrary({alert: () => assert.fail('cancelled picker')});
   assert.equal(service.libraryRoot, null);
   host.nativeFolder.outcome = 0;
   host.nativeFolder.file = 'D:\\Wrong directory';
   await assert.rejects(service.chooseLibrary({}), /Unterordner/);
   host.nativeFolder.file = custom;
-  let confirmed = false;
-  await service.chooseLibrary({alert: () => {confirmed = true;}});
-  assert(confirmed);
+  assert.equal(await service.chooseLibrary({}), custom);
   assert.equal(JSON.parse(host.files.get(host.paths.join(host.directory, 'config.json'))).libraryRoot, custom);
   assert.equal((await service.sync()).status, 'ok');
 });

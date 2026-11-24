@@ -1,0 +1,40 @@
+<vbox id="tfz-preferences">
+  <html:section class="tfz-section" aria-labelledby="tfz-codes-title">
+    <html:h2 id="tfz-codes-title">Codefarben</html:h2>
+    <html:p class="tfz-muted">Die erste zugeordnete Farbe in der letzten Zeile einer TextFold-Notiz bestimmt die PDF-Markierung in Zotero.</html:p>
+    <html:div id="tfz-rules"></html:div>
+    <html:p id="tfz-empty" class="tfz-muted">Noch keine Codefarben. Füge einen Hashtag wie #methode hinzu.</html:p>
+    <html:div class="tfz-actions">
+      <html:button type="button" id="tfz-add">+ Zuordnung hinzufügen</html:button>
+      <html:span class="tfz-spacer"></html:span>
+      <html:button type="button" id="tfz-reset">Verwerfen</html:button>
+      <html:button type="button" id="tfz-save" class="tfz-primary">Speichern</html:button>
+    </html:div>
+    <html:p id="tfz-rule-status" class="tfz-feedback" role="status"></html:p>
+  </html:section>
+  <html:section class="tfz-section" aria-labelledby="tfz-sync-title">
+    <html:div class="tfz-section-head">
+      <html:h2 id="tfz-sync-title">Übertragung</html:h2>
+      <html:button type="button" id="tfz-sync">Jetzt übertragen</html:button>
+    </html:div>
+    <html:label class="tfz-check"><html:input type="checkbox" id="tfz-auto"/> Automatisch übertragen</html:label>
+    <html:dl class="tfz-stats">
+      <html:div><html:dt>PDF-Anmerkungen</html:dt><html:dd id="tfz-annotations">0</html:dd></html:div>
+      <html:div><html:dt>Zotero-Notizen</html:dt><html:dd id="tfz-notes">0</html:dd></html:div>
+      <html:div><html:dt>Letzte Prüfung</html:dt><html:dd id="tfz-time">–</html:dd></html:div>
+    </html:dl>
+    <html:p id="tfz-sync-status" class="tfz-feedback" role="status"></html:p>
+    <html:details id="tfz-issues" hidden="hidden">
+      <html:summary id="tfz-issues-title">Hinweise</html:summary>
+      <html:ul id="tfz-issues-list"></html:ul>
+    </html:details>
+  </html:section>
+  <html:section class="tfz-section" aria-labelledby="tfz-folder-title">
+    <html:h2 id="tfz-folder-title">TextFold-Datenordner</html:h2>
+    <html:p id="tfz-folder" class="tfz-path"></html:p>
+    <html:div class="tfz-actions">
+      <html:button type="button" id="tfz-choose">Ordner auswählen…</html:button>
+      <html:button type="button" id="tfz-default">Standard verwenden</html:button>
+    </html:div>
+  </html:section>
+</vbox>

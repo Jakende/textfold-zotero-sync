@@ -44,7 +44,7 @@ var TextFoldZoteroSync = new class {
       throw new Error('Wähle den TextFold-Datenordner, der den Unterordner „papers“ enthält.');
     }
     await this.saveLibraryRoot(root);
-    window.alert('TextFold-Datenordner gesetzt: ' + root);
+    return root;
   }
   async saveLibraryRoot(root) {
     if (this.running || this.changingLibrary) throw new Error('Warte, bis die laufende Übertragung abgeschlossen ist.');
@@ -280,11 +280,8 @@ var TextFoldZoteroSync = new class {
       return report;
     }finally{this.running=false;}
   }
-  async chooseCodeColors(window) {
-    const current = Object.entries(this.config.codeColors || {}).map(([tag, color]) => '#' + tag + '=' + color).join(', ');
-    const value = window.prompt('Farbzuordnungen, z. B. #barrier=red, #method=blue\nFarben: yellow, red, green, blue, purple, magenta, orange, gray.\nLeer lassen, um die Zuordnungen zu entfernen.', current);
-    if (value === null) return;
-    const codeColors = this.core.parseCodeColors(value);
+  async saveCodeColors(rows) {
+    const codeColors = this.core.validateCodeColors(rows);
     if (this.running || this.changingLibrary) throw new Error('Warte, bis die laufende Übertragung abgeschlossen ist.');
     this.changingLibrary = true;
     try {
@@ -295,8 +292,7 @@ var TextFoldZoteroSync = new class {
     } finally {
       this.changingLibrary = false;
     }
-    await this.sync({manual:true});
-    window.alert(this.describe());
+    return this.sync({manual:true});
   }
   async enabled(value) {
     if (this.changingLibrary) throw new Error('Warte, bis der Datenordner gespeichert ist.');
@@ -310,32 +306,23 @@ var TextFoldZoteroSync = new class {
       this.changingLibrary = false;
     }
   }
-  notifyConflict(){try{const p=new Zotero.ProgressWindow({closeOnClick:true});p.changeHeadline('TextFold → Zotero');p.addDescription('Eine in Zotero bearbeitete Übertragung wurde geschützt und nicht überschrieben. Details: Werkzeuge → TextFold → Zotero → Status anzeigen.');p.show();p.startCloseTimer(8000);}catch(e){Zotero.debug('TextFold sync conflict: '+e.message);}}
-  describe(){
-    const entries=Object.values(this.state.entries),issues=Object.values(this.state.issues);
-    return ['Automatische Übertragung: '+(this.config.enabled?'ein':'aus'),
-      'TextFold-Datenordner: '+(this.libraryRoot || 'nicht konfiguriert'),
-      ...(this.report.status === 'waiting-for-textfold' ? ['TextFold-Daten fehlen. Öffne TextFold oder wähle den Datenordner mit „papers“.'] : []),
-      'Letzte Prüfung: '+(this.report.time?new Date(this.report.time).toLocaleString():'noch keine'),
-      'Zugeordnete PDF-Anmerkungen: '+entries.filter(e=>e.kind==='annotation').length,
-      'Zugeordnete Zotero-Notizen: '+entries.filter(e=>e.kind==='note').length,
-      'Geschützte Änderungen in Zotero: '+issues.filter(i=>i.type==='conflict').length,
-      'In Zotero entfernt, keine Neuanlage: '+issues.filter(i=>i.type==='deleted').length,
-      ...issues.filter(i=>i.type==='conflict').map(i=>i.title+': '+i.reason),
-      ...(this.report.errors||[]).map(e=>'Hinweis: '+e.error)].join('\n\n');
+  notifyConflict(){try{const p=new Zotero.ProgressWindow({closeOnClick:true});p.changeHeadline('TextFold → Zotero');p.addDescription('Eine in Zotero bearbeitete Übertragung wurde geschützt und nicht überschrieben. Details: Werkzeuge → TextFold → Zotero → Einstellungen und Status.');p.show();p.startCloseTimer(8000);}catch(e){Zotero.debug('TextFold sync conflict: '+e.message);}}
+  openPreferences() {
+    return Zotero.Utilities.Internal.openPreferences('textfold-zotero-settings');
   }
   addMenu(window) {
     const doc=window.document,parent=doc.getElementById('menu_ToolsPopup');if(!parent||doc.getElementById('textfold-sync-menu'))return;
     const menu=doc.createXULElement('menu');menu.id='textfold-sync-menu';menu.setAttribute('label','TextFold → Zotero');
     const popup=doc.createXULElement('menupopup');
-    for(const [label,callback] of [
-      ['Jetzt übertragen',async()=>{await this.sync({manual:true});window.alert(this.describe());}],
-      ['Status anzeigen',()=>window.alert(this.describe())],
-      ['Codefarben zuordnen…', () => this.chooseCodeColors(window)],
-      ['TextFold-Datenordner auswählen…', () => this.chooseLibrary(window)],
-      ['TextFold-Standardordner verwenden', async () => {await this.saveLibraryRoot(null);window.alert(this.describe());}],
-      ['Automatische Übertragung ein/aus',async()=>window.alert('Automatische Übertragung: '+(await this.enabled(!this.config.enabled)?'ein':'aus'))]
-    ]){const item=doc.createXULElement('menuitem');item.setAttribute('label',label);item.addEventListener('command',()=>Promise.resolve(callback()).catch(e=>window.alert(e.message)));popup.append(item);}
+    for (const [label, callback] of [
+      ['Einstellungen und Status…', () => this.openPreferences()],
+      ['Jetzt übertragen', async () => { const win = this.openPreferences(); await this.sync({manual:true}); win.document.getElementById('tfz-preferences')?.dispatchEvent(new win.Event('showing')); }],
+    ]) {
+      const item=doc.createXULElement('menuitem');
+      item.setAttribute('label',label);
+      item.addEventListener('command',()=>Promise.resolve().then(callback).catch(e=>window.alert(e.message)));
+      popup.append(item);
+    }
     menu.append(popup);parent.append(menu);
   }
   removeMenu(window){window.document.getElementById('textfold-sync-menu')?.remove();}

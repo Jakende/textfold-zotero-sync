@@ -57,21 +57,41 @@ async function checkDesktop() {
       'Earlier annotation was not cleaned in place');
     await sync('unchanged');
     const writeNote = () => write('notes.json', {format:'textfold/notes', version:1, paper:{id:paper}, notes:[note]});
-    const applyMapping = async input => await service.chooseCodeColors({
-      prompt: () => input,
-      alert: () => {},
-    });
+    const applyMapping = rows => service.saveCodeColors(rows);
     note.text += '\n\n#Grenze #method';
     await writeNote();
-    await applyMapping('#grenze=red, #method=blue');
+    const preferences = service.openPreferences();
+    const waitFor = async (read, label) => {
+      for (let retry = 0; retry < 50; retry++) {
+        const value = read();
+        if (value) return value;
+        await new Promise(resolve => timers.setTimeout(resolve, 100));
+      }
+      throw new Error(label);
+    };
+    const find = id => preferences.document.getElementById('tfz-' + id);
+    await waitFor(() => find('save')?.disabled, 'TextFold preferences did not initialize');
+    for (const [tag, color] of [['grenze','#ff6666'], ['method','#2ea8e5']]) {
+      find('add').click();
+      const row = find('rules').lastElementChild;
+      const input = row.querySelector('input');
+      input.value = tag;
+      input.dispatchEvent(new preferences.Event('input'));
+      const select = row.querySelector('select');
+      select.value = color;
+      select.dispatchEvent(new preferences.Event('change'));
+    }
+    find('save').click();
+    await waitFor(() => find('rule-status').textContent === 'Codefarben gespeichert.', 'Preferences did not save the mappings');
+    preferences.close();
     check(service.report.results[0].key === created.key && annotation.annotationColor === '#ff6666', 'Red did not transfer');
     check(annotation.getTags().map(t => t.tag).sort().join() === 'Methode,grenze,method', 'Expected both code tags and existing tag');
-    await applyMapping('#grenze=green, #method=blue');
+    await applyMapping([['grenze','#5fb236'], ['method','#2ea8e5']]);
     check(service.report.results[0].key === created.key && annotation.annotationColor === '#5fb236', 'Green did not transfer in place');
     await sync('unchanged');
     note.text += '\n';
     await writeNote();
-    await applyMapping('');
+    await applyMapping([]);
     check(annotation.annotationColor === '#a28ae5', 'Original color was not restored');
     check(annotation.getTags().map(t => t.tag).join() === 'Methode', 'Removing mappings changed other tags');
 
