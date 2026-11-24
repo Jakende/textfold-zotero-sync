@@ -11,7 +11,7 @@ This is an independent community add-on maintained by [Jakende](https://github.c
 ## How it works
 
 ```mermaid
-flowchart TD
+flowchart LR
     accTitle: From a TextFold comment to a Zotero annotation
     accDescr: Comment on a passage in TextFold. The add-on copies the comment and tags into Zotero. If it can locate the passage in the original PDF it creates a PDF annotation. Otherwise it creates a child note.
 
