@@ -10,7 +10,11 @@
     const rules = get('rules');
     let saving = false;
     let working = false;
-    const values = () => [...rules.children].map(row => [row.querySelector('input').value, row.querySelector('select').value]);
+    let rowID = 0;
+    const values = () => [...rules.children].map(row => [
+      row.querySelector('input[type="text"]').value,
+      row.querySelector('input:checked').value,
+    ]);
     const saved = () => Object.entries(service.config.codeColors || {});
     const refreshRules = () => {
       const dirty = JSON.stringify(values()) !== JSON.stringify(saved());
@@ -18,7 +22,7 @@
       get('save').disabled = !dirty || saving;
       get('reset').disabled = !dirty || saving;
       get('add').disabled = saving;
-      for (const control of rules.querySelectorAll('input, select, button')) control.disabled = saving;
+      for (const control of rules.querySelectorAll('input, button')) control.disabled = saving;
     };
     const message = (id, value, error = false) => {
       get(id).dataset.error = String(error);
@@ -59,30 +63,31 @@
       input.addEventListener('input', inputChanged);
       const group = make('div');
       group.className = 'tfz-color';
-      const swatch = make('span');
-      swatch.className = 'tfz-swatch';
-      swatch.setAttribute('aria-hidden', 'true');
-      const select = make('select');
-      select.setAttribute('aria-label', 'Zotero-Farbe');
-      for (const [name, hex] of Object.entries(service.core.colors)) {
-        const option = make('option');
-        option.value = hex;
-        option.textContent = text[name];
-        select.add(option);
+      group.setAttribute('role', 'radiogroup');
+      group.setAttribute('aria-label', 'Zotero-Farbe');
+      const name = 'tfz-color-' + ++rowID;
+      for (const [key, hex] of Object.entries(service.core.colors)) {
+        const swatch = make('input');
+        swatch.type = 'radio';
+        swatch.name = name;
+        swatch.value = hex;
+        swatch.checked = hex === color;
+        swatch.title = text[key];
+        swatch.setAttribute('aria-label', text[key]);
+        swatch.style.setProperty('--tfz-swatch', hex);
+        swatch.addEventListener('change', inputChanged);
+        group.append(swatch);
       }
-      select.value = color;
-      swatch.style.backgroundColor = select.value;
-      select.addEventListener('change', () => { swatch.style.backgroundColor = select.value; inputChanged(); });
       const remove = make('button');
       remove.type = 'button';
       remove.textContent = 'Entfernen';
+      remove.className = 'tfz-quiet';
       remove.addEventListener('click', () => {
         const next = row.nextElementSibling || row.previousElementSibling;
         row.remove();
         inputChanged();
         (next?.querySelector('input') || get('add')).focus();
       });
-      group.append(swatch, select);
       row.append(input, group, remove);
       rules.append(row);
       if (focus) input.focus();

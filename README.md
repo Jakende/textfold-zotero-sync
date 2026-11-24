@@ -2,7 +2,7 @@
 
 A Zotero desktop add-on that brings highlights, comments, and questions from TextFold back to the source in your Zotero library. Optional hashtag rules color PDF annotations and add searchable Zotero tags. The standard TextFold app works with this add-on. When the add-on can locate a passage in the matching PDF, it saves a native Zotero highlight with your comment. Whole-document questions and passages without a reliable match become notes attached to the literature item.
 
-[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.5) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
+[Download the beta](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.6) · [All releases](https://github.com/Jakende/textfold-zotero-sync/releases) · [Report an issue](https://github.com/Jakende/textfold-zotero-sync/issues/new)
 
 This is an independent community add-on maintained by [Jakende](https://github.com/Jakende).
 
@@ -19,7 +19,7 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
 
 ## Install and try a transfer
 
-1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.5).
+1. Download the `.xpi` under **Assets** in the [beta release](https://github.com/Jakende/textfold-zotero-sync/releases/tag/v1.1.0-beta.6).
 2. In Zotero, open **Tools → Plugins** (also called **Add-ons** in some versions or translations) and drag the XPI onto the window. See the [Zotero installation guide](https://www.zotero.org/support/plugins).
 3. In TextFold, open a source using its Zotero library picker. To try PDF highlighting, pick an item with a local PDF and add a comment to a passage in the original text.
 4. In Zotero, open **Tools → TextFold → Zotero → Jetzt übertragen**. Check the PDF reader for the highlight or open the child note under the source item.
@@ -27,7 +27,7 @@ Both platforms use the same XPI. This beta uses German labels in the add-on menu
 
 ## Color annotations with research codes
 
-1. In Zotero, open **Tools → TextFold → Zotero → Einstellungen und Status…**. Under **Codefarben**, choose **Zuordnung hinzufügen**, enter a hashtag, and select a Zotero color. For example, add `#barrier` in red and `#method` in blue. Choose **Speichern** to apply the rules, or **Verwerfen** to restore the last saved rules.
+1. In Zotero, open **Tools → TextFold → Zotero → Einstellungen und Status…**. Under **Codefarben**, choose **Zuordnung hinzufügen**, enter a hashtag, and click a swatch in the Zotero palette. For example, add `#barrier` in red and `#method` in blue. Choose **Speichern** to apply the rules, or **Verwerfen** to restore the last saved rules.
 2. Write a passage comment in TextFold. Put the hashtags on their own last line:
 
    ```text

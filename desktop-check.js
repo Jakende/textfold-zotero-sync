@@ -77,9 +77,9 @@ async function checkDesktop() {
       const input = row.querySelector('input');
       input.value = tag;
       input.dispatchEvent(new preferences.Event('input'));
-      const select = row.querySelector('select');
-      select.value = color;
-      select.dispatchEvent(new preferences.Event('change'));
+      const swatch = row.querySelector(`input[type="radio"][value="${color}"]`);
+      swatch.click();
+      check(swatch.checked, 'Click did not select the palette color');
     }
     find('save').click();
     await waitFor(() => find('rule-status').textContent === 'Codefarben gespeichert.', 'Preferences did not save the mappings');
